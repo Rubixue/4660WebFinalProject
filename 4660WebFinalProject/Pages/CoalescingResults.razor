@@ -1,0 +1,16 @@
+﻿@page "/coalescing-results"
+@inject NavigationManager Navigation
+
+<h3>Actions</h3>
+<div>
+    <button @onclick="@(() => NavigateToResults("small"))">Load Small Dataset</button>
+    <button @onclick="@(() => NavigateToResults("medium"))">Load Medium Dataset</button>
+    <button @onclick="@(() => NavigateToResults("large"))">Load Large Dataset</button>
+</div>
+
+@code {
+    private void NavigateToResults(string size)
+    {
+        Navigation.NavigateTo($"/results/{size}");
+    }
+}

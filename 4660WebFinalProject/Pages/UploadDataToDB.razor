@@ -1,0 +1,116 @@
+﻿@page "/upload-to-database"
+
+@inject HttpClient HttpClient
+
+<h3>Upload Data to Database</h3>
+
+<p>
+    Click the button below to upload the JSON data to the database.
+</p>
+
+<button class="btn btn-primary" @onclick="UploadSmallData">Upload Small Data</button>
+
+<button class="btn btn-primary" @onclick="UploadMediumData">Upload Medium Data</button>
+
+<button class="btn btn-primary" @onclick="UploadLargeData">Upload Large Data</button>
+
+@if (isLoading)
+{
+    <p>Uploading data to the database... Please wait.</p>
+}
+else if (!string.IsNullOrEmpty(uploadMessage))
+{
+    <p>@uploadMessage</p>
+}
+
+@code {
+    private bool isLoading = false;
+    private string uploadMessage;
+
+    private async Task UploadSmallData()
+    {
+        try
+        {
+            isLoading = true;
+            uploadMessage = null;
+
+            // Make a POST request to the API endpoint
+            var response = await HttpClient.PostAsync("api/Coalescing/upload-small-json-to-sql", null);
+
+            if (response.IsSuccessStatusCode)
+            {
+                uploadMessage = await response.Content.ReadAsStringAsync();
+            }
+            else
+            {
+                uploadMessage = $"Error: {await response.Content.ReadAsStringAsync()}";
+            }
+        }
+        catch (Exception ex)
+        {
+            uploadMessage = $"Error uploading data: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task UploadMediumData()
+    {
+        try
+        {
+            isLoading = true;
+            uploadMessage = null;
+
+            // Make a POST request to the API endpoint
+            var response = await HttpClient.PostAsync("api/Coalescing/upload-medium-json-to-sql", null);
+
+            if (response.IsSuccessStatusCode)
+            {
+                uploadMessage = await response.Content.ReadAsStringAsync();
+            }
+            else
+            {
+                uploadMessage = $"Error: {await response.Content.ReadAsStringAsync()}";
+            }
+        }
+        catch (Exception ex)
+        {
+            uploadMessage = $"Error uploading data: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task UploadLargeData()
+    {
+        try
+        {
+            isLoading = true;
+            uploadMessage = null;
+
+            // Make a POST request to the API endpoint
+            var response = await HttpClient.PostAsync("api/Coalescing/upload-large-json-to-sql", null);
+
+            if (response.IsSuccessStatusCode)
+            {
+                uploadMessage = await response.Content.ReadAsStringAsync();
+            }
+            else
+            {
+                uploadMessage = $"Error: {await response.Content.ReadAsStringAsync()}";
+            }
+        }
+        catch (Exception ex)
+        {
+            uploadMessage = $"Error uploading data: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

@@ -1,0 +1,139 @@
+﻿@page "/results/{size}"
+@using _4660FinalProject.Models
+@using System.Diagnostics
+@using MudBlazor
+@inject HttpClient HttpClient
+@inject NavigationManager Navigation
+
+@if (sqlResults != null)
+{
+    <h3>SQL Coalescing Results</h3>
+    <p>Time taken: @sqlElapsedMilliseconds ms</p>
+    <ul>
+        @foreach (var record in sqlResults)
+        {
+            <li>EMP_NO: @record.EMP_NO | @record.TSTART - @record.END : @record.Salary</li>
+        }
+    </ul>
+}
+else
+{
+    <p>No results available for SQL coalescing.</p>
+}
+
+<h3>Single-Scan Coalescing</h3>
+@if (singleScanResults != null)
+{
+    <p>Time taken: @singleScanElapsedMilliseconds ms</p>
+    <ul>
+        @foreach (var record in singleScanResults)
+        {
+            <li>EMP_NO: @record.EMP_NO | @record.TSTART - @record.END : @record.Salary</li>
+        }
+    </ul>
+}
+else
+{
+    <p>No results available for single-scan coalescing.</p>
+}
+
+<h3>Validation</h3>
+@if (discrepancies != null && discrepancies.Any())
+{
+    <p>Discrepancies found between SQL and Single-Scan results:</p>
+    <ul>
+        @foreach (var diff in discrepancies)
+        {
+            <li>EMP_NO: @diff.EMP_NO | @diff.TSTART - @diff.END : @diff.Salary</li>
+        }
+    </ul>
+}
+else if (sqlResults != null && singleScanResults != null)
+{
+    <p>The SQL coalescing results match the single-scan results. No discrepancies found.</p>
+}
+else
+{
+    <p>Validation could not be performed due to missing results.</p>
+}
+
+<h3>Performance Comparison</h3>
+@if (chartData != null && chartData.Any())
+{
+    <MudChart ChartType="ChartType.Bar" Labels="chartLabels" Data="chartData" />
+}
+else
+{
+    <p>No data available for performance comparison.</p>
+}
+
+@code {
+    [Parameter]
+    public string size { get; set; }
+
+    private List<TemporalRecord> sqlResults;
+    private List<TemporalRecord> singleScanResults;
+    private List<TemporalRecord> discrepancies;
+    private long sqlElapsedMilliseconds;
+    private long singleScanElapsedMilliseconds;
+
+    private string[] chartLabels = { "SQL Coalescing", "Single-Scan Coalescing" };
+    private double[] chartData;
+
+    protected override async Task OnInitializedAsync()
+    {
+        //await LoadDataSet(size);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        sqlResults = null;
+        singleScanResults = null;
+        discrepancies = null;
+        sqlElapsedMilliseconds = 0;
+        singleScanElapsedMilliseconds = 0;
+
+        await LoadDataSet(size);
+    }
+
+
+    private async Task LoadDataSet(string size)
+    {
+
+        try
+        {
+            sqlResults = null;
+            singleScanResults = null;
+            discrepancies = null;
+
+            var sqlEndpoint = $"api/Coalescing/sql-coalesce-{size}";
+            var singleScanEndpoint = $"api/Coalescing/single-scan-coalesce-{size}";
+
+            var sqlStopwatch = Stopwatch.StartNew();
+            sqlResults = await HttpClient.GetFromJsonAsync<List<TemporalRecord>>(sqlEndpoint);
+            sqlStopwatch.Stop();
+            sqlElapsedMilliseconds = sqlStopwatch.ElapsedMilliseconds;
+
+            var singleScanStopwatch = Stopwatch.StartNew();
+            singleScanResults = await HttpClient.GetFromJsonAsync<List<TemporalRecord>>(singleScanEndpoint);
+            singleScanStopwatch.Stop();
+            singleScanElapsedMilliseconds = singleScanStopwatch.ElapsedMilliseconds;
+
+            // Prepare data for the chart
+            chartData = new double[] { sqlElapsedMilliseconds, singleScanElapsedMilliseconds };
+
+            if (sqlResults != null && singleScanResults != null)
+            {
+                discrepancies = sqlResults.Except(singleScanResults).ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading data for {size} dataset: {ex}");
+        }
+        finally
+        {
+            StateHasChanged();
+        }
+    }
+}
