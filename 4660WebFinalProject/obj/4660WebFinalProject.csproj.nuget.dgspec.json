@@ -52,6 +52,10 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
+            "Blazor.Bootstrap": {
+              "target": "Package",
+              "version": "[3.2.0, )"
+            },
             "Microsoft.AspNetCore.Components.WebAssembly": {
               "target": "Package",
               "version": "[8.0.0, )"
@@ -72,10 +76,6 @@
               "target": "Package",
               "version": "[8.0.0, )",
               "autoReferenced": true
-            },
-            "MudBlazor": {
-              "target": "Package",
-              "version": "[7.15.0, )"
             },
             "MySql.Data": {
               "target": "Package",
